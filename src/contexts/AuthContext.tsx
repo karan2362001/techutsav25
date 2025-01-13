@@ -15,15 +15,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Session timeout in milliseconds (30 minutes)
 const SESSION_TIMEOUT = 30 * 60 * 1000;
 
-// Secure hash function using Web Crypto API
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+// Admin password - in a real app, this would be stored securely on the server
+const ADMIN_PASSWORD = 'admin123';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(() => {
@@ -97,22 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (password: string): Promise<boolean> => {
     try {
-      // Hash the password
-      const hashedPassword = await hashPassword(password);
-      
-      // In a real app, you would verify this against a secure backend
-      // For demo purposes, we're using a hardcoded hash of 'admin123'
-      const correctHash = await hashPassword('admin123');
-      
-      if (hashedPassword === correctHash) {
-        // Generate a session token (in a real app, this would come from the server)
+      if (password === ADMIN_PASSWORD) {
         const token = crypto.randomUUID();
         sessionStorage.setItem('adminToken', token);
         updateLastActivity();
         setIsAdmin(true);
         return true;
       }
-      
       return false;
     } catch (error) {
       console.error('Login error:', error);
